@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getProducts } from "./api/products";
+import ProductList from "./components/ProductList";
 
 function App() {
   const [products, setProducts] = useState([]);
@@ -33,12 +34,7 @@ function App() {
 
       <p>Products available: {products.length}</p>
 
-      {products.map((product) => (
-        <div key={product.id}>
-          <h2>{product.title}</h2>
-          <p>KSh {product.price}</p>
-        </div>
-      ))}
+      <ProductList products={products} />
     </div>
   );
 }
