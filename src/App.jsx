@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
 import { getProducts } from "./api/products";
 import ProductList from "./components/ProductList";
+import ProductDetails from "./components/ProductDetails";
+import "./styles/products.css";
 
 function App() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
   useEffect(() => {
     getProducts()
@@ -29,12 +32,30 @@ function App() {
   }
 
   return (
-    <div>
-      <h1>TechPoint POS</h1>
+    <div className="pos-app">
 
-      <p>Products available: {products.length}</p>
+      {!selectedProduct ? (
 
-      <ProductList products={products} />
+        <div className="products-page">
+
+          <h1>Products</h1>
+
+          <ProductList
+            products={products}
+            onProductSelect={setSelectedProduct}
+          />
+
+        </div>
+
+      ) : (
+
+        <ProductDetails
+          product={selectedProduct}
+          onBack={() => setSelectedProduct(null)}
+        />
+
+      )}
+
     </div>
   );
 }

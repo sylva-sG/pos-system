@@ -1,13 +1,23 @@
+import React from "react";
 import ProductCard from "./ProductCard";
 
-function ProductList({ products }) {
+const ProductList = ({
+  products,
+  onProductSelect,
+}) => {
   return (
-    <div>
+    <div className="product-list">
+
       {products.map((product) => (
-        <ProductCard key={product.id} product={product} />
+        <ProductCard
+          key={product.id}
+          product={product}
+          onClick={onProductSelect}
+        />
       ))}
+
     </div>
   );
-}
+};
 
 export default ProductList;
