@@ -1,18 +1,14 @@
-import { useEffect, useMemo, useReducer, useState } from "react";
+import { useEffect, useReducer, useState } from "react";
 import { getAllProducts } from "./api/products";
 import { cartReducer } from "./cart/cartReducer";
 import { formatKsh } from "./utils/formatPrice";
 import ProductList from "./components/ProductList";
-import SearchBar from "./components/SearchBar";
-import CategoryFilter from "./components/CategoryFilter";
 import Cart from "./components/Cart";
 
 function App() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [search, setSearch] = useState("");
-  const [category, setCategory] = useState("all");
   const [cart, dispatch] = useReducer(cartReducer, []);
   const [sale, setSale] = useState(null);
 
@@ -22,31 +18,6 @@ function App() {
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, []);
-
-  const categories = useMemo(
-    () => [...new Set(products.map((p) => p.category))].sort(),
-    [products]
-  );
-
-  const filteredProducts = useMemo(() => {
-    const query = search.trim().toLowerCase();
-
-    return products.filter((p) => {
-      const matchesCategory = category === "all" || p.category === category;
-      const matchesSearch =
-        !query ||
-        p.title.toLowerCase().includes(query) ||
-        p.brand?.toLowerCase().includes(query) ||
-        p.category.toLowerCase().includes(query);
-
-      return matchesCategory && matchesSearch;
-    });
-  }, [products, search, category]);
-
-  const clearFilters = () => {
-    setSearch("");
-    setCategory("all");
-  };
 
   const completeSale = (total, itemCount) => {
     if (itemCount <= 0) return;
@@ -74,31 +45,13 @@ function App() {
 
       <div className="pos-layout">
         <main className="catalogue">
-          <div className="filters">
-            <SearchBar value={search} onChange={setSearch} />
-            <CategoryFilter
-              categories={categories}
-              selected={category}
-              onChange={setCategory}
-            />
-          </div>
+          <p>Products available: {products.length}</p>
 
-          <p>
-            Showing {filteredProducts.length} of {products.length} products
-          </p>
-
-          {filteredProducts.length === 0 ? (
-            <div className="empty-state">
-              <p>No products match your search.</p>
-              <button onClick={clearFilters}>Clear filters</button>
-            </div>
-          ) : (
-            <ProductList
-              products={filteredProducts}
-              cart={cart}
-              onAddToCart={(product) => dispatch({ type: "ADD", product })}
-            />
-          )}
+          <ProductList
+            products={products}
+            cart={cart}
+            onAddToCart={(product) => dispatch({ type: "ADD", product })}
+          />
         </main>
 
         <Cart
