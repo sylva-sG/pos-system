@@ -1,4 +1,5 @@
 const API_URL = "https://dummyjson.com/products";
+const ELECTRONICS_CATEGORIES = new Set(["laptops", "mobile-accessories"]);
 
 export async function getProducts() {
   const response = await fetch(API_URL);
@@ -9,7 +10,9 @@ export async function getProducts() {
 
   const data = await response.json();
 
-  return data.products.filter((product) => product.category?.toLowerCase() === "electronics");
+  return data.products.filter((product) =>
+    ELECTRONICS_CATEGORIES.has(String(product.category).toLowerCase())
+  );
 }
 
 export async function getProductById(id) {

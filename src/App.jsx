@@ -18,7 +18,13 @@ function App() {
 
   useEffect(() => {
     getAllProducts()
-      .then((data) => setProducts(data.filter((product) => product.category?.toLowerCase() === "electronics")))
+      .then((data) =>
+        setProducts(
+          data.filter((product) =>
+            ["laptops", "mobile-accessories"].includes(String(product.category).toLowerCase())
+          )
+        )
+      )
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, []);
@@ -119,7 +125,7 @@ function App() {
           ) : products.length === 0 ? (
             <div className="catalogue-message">
               <h2>No products available</h2>
-              <p>There are no electronics items to display right now.</p>
+              <p>There are no matching products to display right now.</p>
             </div>
           ) : filteredProducts.length === 0 ? (
             <div className="catalogue-message">
