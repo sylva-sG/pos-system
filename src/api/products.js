@@ -9,8 +9,9 @@ export async function getProducts() {
 
   const data = await response.json();
 
-  return data.products;
+  return data.products.filter((product) => product.category?.toLowerCase() === "electronics");
 }
+
 export async function getProductById(id) {
   const response = await fetch(`${API_URL}/${id}`);
 
@@ -29,5 +30,5 @@ export async function getAllProducts() {
   }
 
   const data = await response.json();
-  return data.products;
+  return data.products.filter((product) => product.category?.toLowerCase() === "electronics");
 }
