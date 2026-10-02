@@ -2,7 +2,7 @@ import { useEffect, useMemo, useReducer, useState } from "react";
 
 import { getAllProducts } from "./api/products";
 import { cartReducer } from "./cart/cartReducer";
-import { formatKsh } from "./utils/formatPrice";
+import { formatKsh, toKsh } from "./utils/formatPrice";
 
 import ProductList from "./components/ProductList";
 import SearchBar from "./components/SearchBar";
@@ -60,13 +60,22 @@ function App() {
   const completeSale = (total, itemCount) => {
     if (itemCount <= 0) return;
 
-    setSale({ total, itemCount });
+    setSale({
+      total,
+      itemCount,
+      items: cart,
+    });
+
     dispatch({ type: "CLEAR" });
   };
 
-  if (loading) return <h1>Loading products...</h1>;
+  if (loading) {
+    return <h1>Loading products...</h1>;
+  }
 
-  if (error) return <h1>Error: {error}</h1>;
+  if (error) {
+    return <h1>Error: {error}</h1>;
+  }
 
   return (
     <div className="app">
@@ -74,10 +83,37 @@ function App() {
 
       {sale && (
         <div className="sale-confirmation" role="status">
-          <p>
-            Sale completed! {sale.itemCount} item(s), total{" "}
-            <strong>{formatKsh(sale.total)}</strong>.
-          </p>
+          <h2>TECHPOINT — SIMULATED SALE</h2>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Qty</th>
+                <th>Price</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {sale.items.map((item) => (
+                <tr key={item.id}>
+                  <td>{item.title}</td>
+                  <td>{item.quantity}</td>
+                  <td>{formatKsh(toKsh(item.price))}</td>
+                  <td>
+                    {formatKsh(
+                      toKsh(item.price) * item.quantity
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          <h3>TOTAL: {formatKsh(sale.total)}</h3>
+
+          <p>Status: Simulated sale completed</p>
 
           <button onClick={() => setSale(null)}>
             New sale
