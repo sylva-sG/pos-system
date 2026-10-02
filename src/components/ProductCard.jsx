@@ -6,17 +6,34 @@ function ProductCard({ product, inCart, onAddToCart }) {
 
   return (
     <div className="product-card">
-      <h2>{product.title}</h2>
-      <p>{formatPrice(product.price)}</p>
-      <p>{product.category}</p>
-      <img src={product.thumbnail} alt={product.title} />
+      <div className="product-image-container">
+        <img
+          className="product-image"
+          src={product.thumbnail}
+          alt={product.title}
+        />
+      </div>
 
-      <button
-        onClick={() => onAddToCart(product)}
-        disabled={outOfStock || maxedOut}
-      >
-        {outOfStock ? "Out of stock" : maxedOut ? "Max in cart" : "Add to cart"}
-      </button>
+      <div className="product-card-content">
+        <p className="product-category">{product.category}</p>
+
+        <h2 className="product-title">{product.title}</h2>
+
+        <p className="product-price">
+          {formatPrice(product.price)}
+        </p>
+
+        <button
+          onClick={() => onAddToCart(product)}
+          disabled={outOfStock || maxedOut}
+        >
+          {outOfStock
+            ? "Out of stock"
+            : maxedOut
+            ? "Max in cart"
+            : "Add to cart"}
+        </button>
+      </div>
     </div>
   );
 }

@@ -282,3 +282,24 @@
   }
 
 }
+.product-card button {
+  width: 100%;
+  margin-top: 12px;
+  padding: 10px 14px;
+  border: none;
+  border-radius: 8px;
+  background: #075f75;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.product-card button:hover {
+  background: #064c5d;
+}
+
+.product-card button:disabled {
+  background: #aaa;
+  cursor: not-allowed;
+}
