@@ -1,8 +1,12 @@
 const API_URL = "https://dummyjson.com/products";
-const ELECTRONICS_CATEGORIES = new Set(["laptops", "mobile-accessories"]);
+const POS_PRODUCT_CATEGORIES = new Set([
+  "smartphones",
+  "laptops",
+  "mobile-accessories",
+]);
 
 export async function getProducts() {
-  const response = await fetch(API_URL);
+  const response = await fetch(`${API_URL}?limit=0`);
 
   if (!response.ok) {
     throw new Error("Failed to fetch products");
@@ -11,7 +15,7 @@ export async function getProducts() {
   const data = await response.json();
 
   return data.products.filter((product) =>
-    ELECTRONICS_CATEGORIES.has(String(product.category).toLowerCase())
+    POS_PRODUCT_CATEGORIES.has(String(product.category).toLowerCase())
   );
 }
 
@@ -33,5 +37,5 @@ export async function getAllProducts() {
   }
 
   const data = await response.json();
-  return data.products.filter((product) => product.category?.toLowerCase() === "electronics");
+  return data.products;
 }
