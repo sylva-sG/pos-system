@@ -12,6 +12,33 @@ import Cart from "./components/Cart";
 import "./App.css";
 import "./styles/products.css";
 
+const electronicsCategories = [
+  "laptops",
+  "mobile-accessories",
+  "smartphones",
+  "tablets",
+];
+
+const electronicsKeywords = [
+  "keyboard",
+  "mouse",
+  "headphone",
+  "earphone",
+  "charger",
+  "cable",
+  "camera",
+  "gaming",
+  "monitor",
+  "computer",
+  "phone",
+  "tablet",
+  "laptop",
+  "speaker",
+  "webcam",
+  "airpods",
+  "smartwatch",
+];
+
 function App() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -25,7 +52,23 @@ function App() {
 
   useEffect(() => {
     getAllProducts()
-      .then((data) => setProducts(data))
+      .then((data) => {
+        const electronics = data.filter((product) => {
+          const title = product.title.toLowerCase();
+          const productCategory = product.category.toLowerCase();
+
+          return (
+            electronicsCategories.includes(productCategory) ||
+            electronicsKeywords.some(
+              (keyword) =>
+                title.includes(keyword) ||
+                productCategory.includes(keyword)
+            )
+          );
+        });
+
+        setProducts(electronics);
+      })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, []);
