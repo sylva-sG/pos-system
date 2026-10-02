@@ -1,17 +1,14 @@
-function CategoryFilter({ categories, selectedCategory, onCategoryChange }) {
+function SearchBar({ value, onChange }) {
   return (
-    <select
-      value={selectedCategory}
-      onChange={(e) => onCategoryChange(e.target.value)}
-    >
-      <option value="all">All categories</option>
-      {categories.map((cat) => (
-        <option key={cat} value={cat}>
-          {cat}
-        </option>
-      ))}
-    </select>
+    <input
+      type="search"
+      className="search-bar"
+      placeholder="Search products..."
+      aria-label="Search products"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+    />
   );
 }
 
-export default CategoryFilter;
+export default SearchBar;

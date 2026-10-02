@@ -1,12 +1,23 @@
-function SearchBar({ searchTerm, onSearchChange }) {
+const label = (slug) =>
+  slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+
+function CategoryFilter({ categories, selected, onChange }) {
   return (
-    <input
-      type="text"
-      placeholder="Search products..."
-      value={searchTerm}
-      onChange={(e) => onSearchChange(e.target.value)}
-    />
+    <select
+      className="category-filter"
+      aria-label="Filter by category"
+      value={selected}
+      onChange={(e) => onChange(e.target.value)}
+    >
+      <option value="all">All categories</option>
+
+      {categories.map((category) => (
+        <option key={category} value={category}>
+          {label(category)}
+        </option>
+      ))}
+    </select>
   );
 }
 
-export default SearchBar;
+export default CategoryFilter;
