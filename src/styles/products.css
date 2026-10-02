@@ -1,0 +1,305 @@
+/* ========================================
+   PRODUCT LIST
+======================================== */
+
+.product-list {
+  display: grid;
+
+  grid-template-columns:
+    repeat(auto-fill, minmax(210px, 1fr));
+
+  gap: 20px;
+
+  width: 100%;
+}
+
+
+/* ========================================
+   PRODUCT CARD
+======================================== */
+
+.product-card {
+  background: #ffffff;
+
+  border: 1px solid #e5e7eb;
+
+  border-radius: 14px;
+
+  overflow: hidden;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.product-card:hover {
+  transform: translateY(-4px);
+
+  box-shadow:
+    0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
+
+/* ========================================
+   PRODUCT IMAGE
+======================================== */
+
+.product-image-container {
+  width: 100%;
+  height: 190px;
+
+  background: #f7f7f7;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  overflow: hidden;
+}
+
+.product-image {
+  width: 100%;
+  height: 100%;
+
+  object-fit: contain;
+
+  padding: 15px;
+
+  box-sizing: border-box;
+}
+
+
+/* ========================================
+   PRODUCT CARD CONTENT
+======================================== */
+
+.product-card-content {
+  padding: 16px;
+}
+
+.product-category {
+  font-size: 13px;
+
+  color: #777;
+
+  text-transform: uppercase;
+
+  letter-spacing: 0.5px;
+}
+
+.product-title {
+  margin: 7px 0;
+
+  font-size: 17px;
+
+  color: #222;
+}
+
+.product-price {
+  margin: 0;
+
+  font-size: 18px;
+
+  font-weight: 700;
+
+  color: #075f75;
+}
+
+
+/* ========================================
+   PRODUCT DETAILS
+======================================== */
+
+.product-details {
+  width: 100%;
+
+  padding: 20px;
+
+  box-sizing: border-box;
+}
+
+.back-button {
+  border: none;
+
+  background: transparent;
+
+  color: #075f75;
+
+  font-size: 16px;
+
+  cursor: pointer;
+
+  margin-bottom: 25px;
+}
+
+.product-details-content {
+  display: grid;
+
+  grid-template-columns: 1fr 1fr;
+
+  gap: 50px;
+
+  max-width: 1000px;
+
+  margin: 0 auto;
+}
+
+.product-details-image {
+  height: 450px;
+
+  background: #f7f7f7;
+
+  border-radius: 16px;
+
+  display: flex;
+
+  justify-content: center;
+
+  align-items: center;
+
+  overflow: hidden;
+}
+
+.product-details-image img {
+  width: 100%;
+  height: 100%;
+
+  object-fit: contain;
+
+  padding: 30px;
+
+  box-sizing: border-box;
+}
+
+.product-details-info {
+  display: flex;
+
+  flex-direction: column;
+
+  justify-content: center;
+}
+
+.product-details-category {
+  color: #777;
+
+  font-size: 14px;
+
+  text-transform: uppercase;
+
+  letter-spacing: 1px;
+}
+
+.product-details-info h1 {
+  margin: 10px 0;
+
+  font-size: 36px;
+
+  color: #075f75;
+}
+
+.product-details-price {
+  font-size: 30px;
+
+  font-weight: 700;
+
+  color: #075f75;
+
+  margin: 10px 0 20px;
+}
+
+.product-description {
+  color: #666;
+
+  font-size: 17px;
+
+  line-height: 1.6;
+}
+
+.add-to-cart-button {
+  margin-top: 25px;
+
+  padding: 16px 30px;
+
+  border: none;
+
+  border-radius: 10px;
+
+  background: #075f75;
+
+  color: white;
+
+  font-size: 17px;
+
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+
+/* ========================================
+   MOBILE
+======================================== */
+
+@media (max-width: 700px) {
+
+  .product-list {
+    grid-template-columns:
+      repeat(2, 1fr);
+
+    gap: 12px;
+  }
+
+  .product-image-container {
+    height: 150px;
+  }
+
+  .product-card-content {
+    padding: 12px;
+  }
+
+  .product-name {
+    font-size: 15px;
+  }
+
+  .product-price {
+    font-size: 16px;
+  }
+
+  .product-details-content {
+    grid-template-columns: 1fr;
+
+    gap: 25px;
+  }
+
+  .product-details-image {
+    height: 300px;
+  }
+
+  .product-details-info h1 {
+    font-size: 28px;
+  }
+
+}
+.product-card button {
+  width: 100%;
+  margin-top: 12px;
+  padding: 10px 14px;
+  border: none;
+  border-radius: 8px;
+  background: #075f75;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.product-card button:hover {
+  background: #064c5d;
+}
+
+.product-card button:disabled {
+  background: #aaa;
+  cursor: not-allowed;
+}
