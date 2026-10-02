@@ -1,58 +1,62 @@
-import React from "react";
+import { formatPrice } from "../utils/formatPrice";
 
-const ProductDetails = ({ product, onBack }) => {
-
-  if (!product) {
-    return null;
-  }
+function ProductDetails({ product, onClose, onAddToCart }) {
+  if (!product) return null;
 
   return (
     <div className="product-details">
-
-      <button
-        className="back-button"
-        onClick={onBack}
-      >
+      <button onClick={onClose}>
         ← Back to Products
       </button>
 
       <div className="product-details-content">
-
-        <div className="product-details-image">
-          <img
-            src={product.thumbnail}
-            alt={product.title}
-          />
-        </div>
+        <img
+          src={product.thumbnail}
+          alt={product.title}
+          className="product-details-image"
+        />
 
         <div className="product-details-info">
-
-          <h1>
-            {product.title}
-          </h1>
-
-          <span className="product-details-category">
+          <p className="product-category">
             {product.category}
-          </span>
-
-          <p className="product-details-price">
-            KSh {product.price.toLocaleString()}
           </p>
 
-          <p className="product-description">
-            {product.description}
+          <h2>{product.title}</h2>
+
+          <p>{product.description}</p>
+
+          <p>
+            <strong>Brand:</strong>{" "}
+            {product.brand || "N/A"}
           </p>
 
-          <button className="add-to-cart-button">
-            Add to Cart
+          <p>
+            <strong>Price:</strong>{" "}
+            {formatPrice(product.price)}
+          </p>
+
+          <p>
+            <strong>Available:</strong>{" "}
+            {product.stock}
+          </p>
+
+          <p>
+            <strong>Rating:</strong>{" "}
+            {product.rating}
+          </p>
+
+          <button
+            onClick={() => onAddToCart(product)}
+            disabled={product.stock < 1}
+          >
+            {product.stock < 1
+              ? "Out of Stock"
+              : "Add to Cart"}
           </button>
-
         </div>
-
       </div>
-
     </div>
   );
-};
+}
 
 export default ProductDetails;

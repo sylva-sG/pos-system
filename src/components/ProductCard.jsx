@@ -1,6 +1,11 @@
 import { formatPrice } from "../utils/formatPrice";
 
-function ProductCard({ product, inCart, onAddToCart }) {
+function ProductCard({
+  product,
+  inCart,
+  onAddToCart,
+  onViewDetails,
+}) {
   const outOfStock = product.stock < 1;
   const maxedOut = inCart >= product.stock;
 
@@ -15,13 +20,30 @@ function ProductCard({ product, inCart, onAddToCart }) {
       </div>
 
       <div className="product-card-content">
-        <p className="product-category">{product.category}</p>
+        <p className="product-category">
+          {product.category}
+        </p>
 
-        <h2 className="product-title">{product.title}</h2>
+        <h2 className="product-title">
+          {product.title}
+        </h2>
 
         <p className="product-price">
           {formatPrice(product.price)}
         </p>
+
+        <p>
+          Available: {product.stock - inCart}
+        </p>
+
+        <button
+  onClick={() => {
+    console.log("Selected product:", product);
+    onViewDetails(product);
+  }}
+>
+  View Details
+</button>
 
         <button
           onClick={() => onAddToCart(product)}

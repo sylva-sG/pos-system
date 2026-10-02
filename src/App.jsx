@@ -1,5 +1,11 @@
-import { useEffect, useMemo, useReducer, useState } from "react";
-
+import {
+  useEffect,
+  useMemo,
+  useReducer,
+  useState,
+  useRef,
+} from "react";
+import ProductDetails from "./components/ProductDetails";
 import { getAllProducts } from "./api/products";
 import { cartReducer } from "./cart/cartReducer";
 import { formatKsh, toKsh } from "./utils/formatPrice";
@@ -49,6 +55,8 @@ function App() {
 
   const [cart, dispatch] = useReducer(cartReducer, []);
   const [sale, setSale] = useState(null);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const productDetailsRef = useRef(null);
 
   useEffect(() => {
     getAllProducts()
@@ -163,7 +171,20 @@ function App() {
           </button>
         </div>
       )}
-
+   {selectedProduct && (
+  <div ref={productDetailsRef}>
+    <ProductDetails
+      product={selectedProduct}
+      onClose={() => setSelectedProduct(null)}
+      onAddToCart={(product) =>
+        dispatch({
+          type: "ADD",
+          product,
+        })
+      }
+    />
+  </div>
+)}
       <div className="pos-layout">
         <main className="catalogue">
           <div className="filters">
@@ -193,16 +214,27 @@ function App() {
               </button>
             </div>
           ) : (
-            <ProductList
-              products={filteredProducts}
-              cart={cart}
-              onAddToCart={(product) =>
-                dispatch({
-                  type: "ADD",
-                  product,
-                })
-              }
-            />
+           <ProductList
+  products={filteredProducts}
+  cart={cart}
+  onAddToCart={(product) =>
+    dispatch({
+      type: "ADD",
+      product,
+    })
+  }
+   onViewDetails={(product) => {
+  setSelectedProduct(product);
+
+  setTimeout(() => {
+    productDetailsRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }, 100);
+
+  }}
+/>
           )}
         </main>
 
