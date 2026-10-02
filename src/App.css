@@ -182,3 +182,28 @@
     border-right-color: var(--border);
   }
 }
+
+.sale-confirmation {
+  margin: 20px 0;
+  padding: 16px 20px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--accent-bg);
+  text-align: center;
+}
+
+.sale-confirmation p {
+  margin: 0 0 12px;
+  font-size: 16px;
+}
+
+.sale-confirmation strong {
+  font-size: 18px;
+}
+
+.sale-confirmation button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
