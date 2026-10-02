@@ -5,58 +5,60 @@ function ProductCard({
   inCart,
   onAddToCart,
   onViewDetails,
+  showStock,
 }) {
-  const outOfStock = product.stock < 1;
-  const maxedOut = inCart >= product.stock;
+  const remainingStock = Math.max(product.stock - inCart, 0);
+  const outOfStock = remainingStock === 0;
 
   return (
-    <div className="product-card">
-      <div className="product-image-container">
+    <article className="product-card">
+      <div className="product-card__image-wrap">
         <img
-          className="product-image"
+          className="product-card__image"
           src={product.thumbnail}
           alt={product.title}
+          loading="lazy"
         />
       </div>
 
-      <div className="product-card-content">
-        <p className="product-category">
+      <div className="product-card__details">
+        <p className="product-card__category">
           {product.category}
         </p>
 
-        <h2 className="product-title">
+        <h2 className="product-card__title">
           {product.title}
         </h2>
 
-        <p className="product-price">
+        <p className="product-card__price">
           {formatPrice(product.price)}
         </p>
 
+        {showStock && (
+          <p className="product-card__stock">
+            {remainingStock} unit{remainingStock === 1 ? "" : "s"} left
+          </p>
+        )}
+
         <p>
-          Available: {product.stock - inCart}
+          Available: {remainingStock}
         </p>
 
         <button
-  onClick={() => {
-    console.log("Selected product:", product);
-    onViewDetails(product);
-  }}
->
-  View Details
-</button>
+          onClick={() => onViewDetails(product)}
+        >
+          View Details
+        </button>
 
         <button
+          className="product-card__button"
           onClick={() => onAddToCart(product)}
-          disabled={outOfStock || maxedOut}
+          disabled={outOfStock}
         >
-          {outOfStock
-            ? "Out of stock"
-            : maxedOut
-            ? "Max in cart"
-            : "Add to cart"}
+          {outOfStock ? "Out of stock" : "Add to cart"}
         </button>
       </div>
-    </div>
+    </article>
   );
 }
 

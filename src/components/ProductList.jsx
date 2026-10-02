@@ -2,12 +2,13 @@ import ProductCard from "./ProductCard";
 
 function ProductList({
   products,
-  cart,
-  onAddToCart,
+  cart = [],
+  onAddToCart = () => {},
   onViewDetails,
+  showStock = false,
 }) {
   return (
-    <div className="product-list">
+    <div className="product-grid">
       {products.map((product) => (
         <ProductCard
           key={product.id}
@@ -16,6 +17,7 @@ function ProductList({
             cart.find((item) => item.id === product.id)
               ?.quantity ?? 0
           }
+          showStock={showStock}
           onAddToCart={onAddToCart}
           onViewDetails={onViewDetails}
         />
