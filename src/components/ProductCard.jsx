@@ -1,36 +1,24 @@
-import React from "react";
+import { formatPrice } from "../utils/formatPrice";
 
-const ProductCard = ({ product, onClick }) => {
+function ProductCard({ product, inCart, onAddToCart }) {
+  const outOfStock = product.stock < 1;
+  const maxedOut = inCart >= product.stock;
+
   return (
-    <div
-      className="product-card"
-      onClick={() => onClick(product)}
-    >
-      <div className="product-image-container">
-        <img
-          src={product.thumbnail}
-          alt={product.title}
-          className="product-image"
-        />
-      </div>
+    <div className="product-card">
+      <h2>{product.title}</h2>
+      <p>{formatPrice(product.price)}</p>
+      <p>{product.category}</p>
+      <img src={product.thumbnail} alt={product.title} />
 
-      <div className="product-card-content">
-
-        <span className="product-category">
-          {product.category}
-        </span>
-
-        <h3 className="product-title">
-          {product.title}
-        </h3>
-
-        <p className="product-price">
-          KSh {product.price.toLocaleString()}
-        </p>
-
-      </div>
+      <button
+        onClick={() => onAddToCart(product)}
+        disabled={outOfStock || maxedOut}
+      >
+        {outOfStock ? "Out of stock" : maxedOut ? "Max in cart" : "Add to cart"}
+      </button>
     </div>
   );
-};
+}
 
 export default ProductCard;
