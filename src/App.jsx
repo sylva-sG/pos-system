@@ -49,6 +49,8 @@ function App() {
   };
 
   const completeSale = (total, itemCount) => {
+    if (itemCount <= 0) return;
+
     setSale({ total, itemCount });
     dispatch({ type: "CLEAR" });
   };
