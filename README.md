@@ -140,8 +140,9 @@ Demo logins (Phase 1 — simulated):
 
 | Role | Username | Password |
 |------|----------|----------|
-| Admin | admin | admin |
-| Cashier | cashier | cashier |
+| Admin | manager | man123 |
+| Cashier1 | cashier | cash123 |
+| Cashier2 | cashier2 | cash123 |
 
 ## Other scripts
 
