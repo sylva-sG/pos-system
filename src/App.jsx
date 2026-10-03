@@ -1,3 +1,12 @@
+import Login from "./components/Login";
+import ManagerDashboard from "./components/ManagerDashboard";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+
+import ManagerNav from "./components/ManagerNav";
+import ManagerSales from "./components/ManagerSales";
+import ManagerProducts from "./components/ManagerProducts";
+import ManagerCashiers from "./components/ManagerCashiers";
+
 import {
   useEffect,
   useMemo,
@@ -21,18 +30,24 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const [currentUser, setCurrentUser] = useState(null);
+
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("all");
 
   const [cart, dispatch] = useReducer(cartReducer, []);
+  const [heldCarts, setHeldCarts] = useState([]);
   const [sale, setSale] = useState(null);
 
   const [sessionSales, setSessionSales] = useState([]);
+
   const receiptRef = useRef(null);
+
   const [view, setView] = useState("home");
   const [featuredIndex, setFeaturedIndex] = useState(0);
 
   const [selectedProduct, setSelectedProduct] = useState(null);
+
   const productDetailsRef = useRef(null);
 
   useEffect(() => {
@@ -44,7 +59,11 @@ function App() {
 
   const categories = useMemo(
     () =>
-      [...new Set(products.map((product) => product.category))].sort(),
+      [
+        ...new Set(
+          products.map((product) => product.category)
+        ),
+      ].sort(),
     [products]
   );
 
@@ -59,7 +78,10 @@ function App() {
         categoryProducts.push(product);
       }
 
-      productsByCategory.set(product.category, categoryProducts);
+      productsByCategory.set(
+        product.category,
+        categoryProducts
+      );
     });
 
     return [...productsByCategory.values()].flat();
@@ -68,14 +90,17 @@ function App() {
   useEffect(() => {
     if (
       featuredProducts.length < 2 ||
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      window.matchMedia(
+        "(prefers-reduced-motion: reduce)"
+      ).matches
     ) {
       return undefined;
     }
 
     const intervalId = window.setInterval(() => {
       setFeaturedIndex(
-        (index) => (index + 1) % featuredProducts.length
+        (index) =>
+          (index + 1) % featuredProducts.length
       );
     }, 4500);
 
@@ -92,12 +117,20 @@ function App() {
 
       const matchesSearch =
         !query ||
-        product.title.toLowerCase().includes(query) ||
-        product.brand?.toLowerCase().includes(query) ||
-        product.category.toLowerCase().includes(query);
+        product.title
+          .toLowerCase()
+          .includes(query) ||
+        product.brand
+          ?.toLowerCase()
+          .includes(query) ||
+        product.category
+          .toLowerCase()
+          .includes(query);
 
       const quantityInCart =
-        cart.find((item) => item.id === product.id)?.quantity ?? 0;
+        cart.find(
+          (item) => item.id === product.id
+        )?.quantity ?? 0;
 
       const matchesStock =
         view !== "low-stock" ||
@@ -110,17 +143,27 @@ function App() {
         matchesStock
       );
     });
-  }, [products, search, category, view, cart]);
+  }, [
+    products,
+    search,
+    category,
+    view,
+    cart,
+  ]);
 
-  const lowStockCount = products.filter((product) => {
-    const quantityInCart =
-      cart.find((item) => item.id === product.id)?.quantity ?? 0;
+  const lowStockCount = products.filter(
+    (product) => {
+      const quantityInCart =
+        cart.find(
+          (item) => item.id === product.id
+        )?.quantity ?? 0;
 
-    return (
-      product.stock > 0 &&
-      product.stock - quantityInCart <= 10
-    );
-  }).length;
+      return (
+        product.stock > 0 &&
+        product.stock - quantityInCart <= 10
+      );
+    }
+  ).length;
 
   const featuredProduct =
     featuredProducts[featuredIndex];
@@ -151,46 +194,93 @@ function App() {
     setSelectedProduct(null);
   };
 
-  const completeSale = () => {
-  if (cart.length === 0) {
-    return;
-  }
+  const holdSale = () => {
+    if (cart.length === 0) {
+      return;
+    }
 
-  const total = cart.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
-  );
+    const heldSale = {
+      id: Date.now(),
+      items: cart,
+      heldAt: new Date().toISOString(),
+    };
 
-  const completedSale = {
-    items: cart.map((item) => ({
-      id: item.id,
-      title: item.title,
-      price: item.price,
-      quantity: item.quantity,
-    })),
-    total,
-    itemCount: cart.reduce(
-      (sum, item) => sum + item.quantity,
-      0
-    ),
-    completedAt: new Date().toISOString(),
+    setHeldCarts((sales) => [
+      ...sales,
+      heldSale,
+    ]);
+
+    dispatch({ type: "CLEAR" });
   };
 
-  setSale(completedSale);
-  setSessionSales((sales) => [
-    ...sales,
-    completedSale,
-  ]);
+  const restoreHeldSale = (id) => {
+    const heldSale = heldCarts.find(
+      (sale) => sale.id === id
+    );
 
-  dispatch({ type: "CLEAR" });
+    if (!heldSale) {
+      return;
+    }
 
-  setTimeout(() => {
-    receiptRef.current?.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
+    dispatch({
+      type: "RESTORE",
+      items: heldSale.items,
     });
-  }, 100);
-};
+
+    setHeldCarts((sales) =>
+      sales.filter(
+        (sale) => sale.id !== id
+      )
+    );
+  };
+
+  const completeSale = () => {
+    if (cart.length === 0) {
+      return;
+    }
+
+    const total = cart.reduce(
+      (sum, item) =>
+        sum + item.price * item.quantity,
+      0
+    );
+
+    const completedSale = {
+      items: cart.map((item) => ({
+        id: item.id,
+        title: item.title,
+        price: item.price,
+        quantity: item.quantity,
+      })),
+
+      total,
+
+      itemCount: cart.reduce(
+        (sum, item) =>
+          sum + item.quantity,
+        0
+      ),
+
+      completedAt:
+        new Date().toISOString(),
+    };
+
+    setSale(completedSale);
+
+    setSessionSales((sales) => [
+      ...sales,
+      completedSale,
+    ]);
+
+    dispatch({ type: "CLEAR" });
+
+    setTimeout(() => {
+      receiptRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 100);
+  };
 
   const handleViewDetails = (product) => {
     setSelectedProduct(product);
@@ -203,13 +293,88 @@ function App() {
     }, 100);
   };
 
+  if (!currentUser) {
+    return (
+      <Login
+        onLogin={(user) =>
+          setCurrentUser(user)
+        }
+      />
+    );
+  }
+
+  /*
+    MANAGER AREA
+  */
+
+  if (currentUser.role === "manager") {
+    return (
+      <>
+        <ManagerNav
+          user={currentUser}
+          onLogout={() =>
+            setCurrentUser(null)
+          }
+        />
+
+        <Routes>
+          <Route
+            path="/manager"
+            element={
+              <ManagerDashboard
+                user={currentUser}
+                onLogout={() =>
+                  setCurrentUser(null)
+                }
+                products={products}
+                sales={sessionSales}
+              />
+            }
+          />
+
+          <Route
+            path="/manager/sales"
+            element={
+              <ManagerSales
+                sales={sessionSales}
+              />
+            }
+          />
+
+          <Route
+            path="/manager/products"
+            element={
+              <ManagerProducts
+                products={products}
+                setProducts={setProducts}
+              />
+            }
+          />
+
+          <Route
+            path="/manager/cashiers"
+            element={
+              <ManagerCashiers />
+            }
+          />
+        </Routes>
+      </>
+    );
+  }
+
+  /*
+    CASHIER AREA
+  */
+
   return (
     <div className="pos-app">
       <header className="app-header">
         <button
           className="brand-lockup"
           type="button"
-          onClick={() => navigateTo("home")}
+          onClick={() =>
+            navigateTo("home")
+          }
           aria-label="TechPoint home"
         >
           <span
@@ -236,20 +401,28 @@ function App() {
         >
           <button
             className={`app-nav-button${
-              view === "home" ? " is-active" : ""
+              view === "home"
+                ? " is-active"
+                : ""
             }`}
             type="button"
             aria-current={
-              view === "home" ? "page" : undefined
+              view === "home"
+                ? "page"
+                : undefined
             }
-            onClick={() => navigateTo("home")}
+            onClick={() =>
+              navigateTo("home")
+            }
           >
             Home
           </button>
 
           <button
             className={`app-nav-button${
-              view === "categories" ? " is-active" : ""
+              view === "categories"
+                ? " is-active"
+                : ""
             }`}
             type="button"
             aria-current={
@@ -257,14 +430,18 @@ function App() {
                 ? "page"
                 : undefined
             }
-            onClick={() => navigateTo("categories")}
+            onClick={() =>
+              navigateTo("categories")
+            }
           >
             Categories
           </button>
 
           <button
             className={`app-nav-button${
-              view === "products" ? " is-active" : ""
+              view === "products"
+                ? " is-active"
+                : ""
             }`}
             type="button"
             aria-current={
@@ -272,14 +449,18 @@ function App() {
                 ? "page"
                 : undefined
             }
-            onClick={() => navigateTo("products")}
+            onClick={() =>
+              navigateTo("products")
+            }
           >
             Products
           </button>
 
           <button
             className={`app-nav-button${
-              view === "low-stock" ? " is-active" : ""
+              view === "low-stock"
+                ? " is-active"
+                : ""
             }`}
             type="button"
             aria-current={
@@ -327,8 +508,9 @@ function App() {
               </h1>
 
               <p className="welcome-description">
-                Your counter is ready. Pick up where
-                you left off and make the next sale.
+                Your counter is ready. Pick up
+                where you left off and make the
+                next sale.
               </p>
 
               <button
@@ -362,7 +544,8 @@ function App() {
                     IN THE SHOP
                   </span>
 
-                  {featuredProducts.length > 1 && (
+                  {featuredProducts.length >
+                    1 && (
                     <div className="feature-controls">
                       <span aria-hidden="true">
                         {String(
@@ -400,8 +583,12 @@ function App() {
 
                   <img
                     key={featuredProduct.id}
-                    src={featuredProduct.thumbnail}
-                    alt={featuredProduct.title}
+                    src={
+                      featuredProduct.thumbnail
+                    }
+                    alt={
+                      featuredProduct.title
+                    }
                   />
 
                   <div className="feature-product-copy">
@@ -467,7 +654,9 @@ function App() {
                   navigateTo("products")
                 }
               >
-                <span>Products listed</span>
+                <span>
+                  Products listed
+                </span>
 
                 <strong>
                   {loading
@@ -503,7 +692,9 @@ function App() {
                   navigateTo("low-stock")
                 }
               >
-                <span>Running low</span>
+                <span>
+                  Running low
+                </span>
 
                 <strong>
                   {loading
@@ -622,7 +813,8 @@ function App() {
                 role="alert"
               >
                 <h2>
-                  Categories couldn’t be loaded
+                  Categories couldn’t be
+                  loaded
                 </h2>
 
                 <p>{error}</p>
@@ -634,8 +826,9 @@ function App() {
                 </h2>
 
                 <p>
-                  There are no product categories
-                  to display right now.
+                  There are no product
+                  categories to display right
+                  now.
                 </p>
               </div>
             ) : (
@@ -672,7 +865,9 @@ function App() {
                             setCategory(
                               categoryName
                             );
-                            setView("products");
+                            setView(
+                              "products"
+                            );
                           }}
                         >
                           <span className="category-list-copy">
@@ -681,7 +876,8 @@ function App() {
                             </strong>
 
                             <span>
-                              {productCount} products
+                              {productCount}{" "}
+                              products
                             </span>
                           </span>
 
@@ -735,56 +931,83 @@ function App() {
               )}
             </div>
 
-          {sale && (
-  <div
-    className="sale-confirmation"
-    ref={receiptRef}
-    role="status"
-  >
-    <h2>Sale Completed</h2>
+            {sale && (
+              <div
+                className="sale-confirmation"
+                ref={receiptRef}
+                role="status"
+              >
+                <h2>Sale Completed</h2>
 
-    <div className="receipt">
-      <h3>TECHPOINT RECEIPT</h3>
+                <div className="receipt">
+                  <h3>TECHPOINT RECEIPT</h3>
 
-      <p>
-        <strong>Date:</strong>{" "}
-        {new Date(sale.completedAt).toLocaleString()}
-      </p>
+                  <p>
+                    <strong>Date:</strong>{" "}
+                    {new Date(
+                      sale.completedAt
+                    ).toLocaleString()}
+                  </p>
 
-      <hr />
+                  <hr />
 
-      {sale.items.map((item) => (
-        <div key={item.id} className="receipt-item">
-          <div>
-            <strong>{item.title}</strong>
-            <p>
-              {item.quantity} × {formatKsh(item.price)}
-            </p>
-          </div>
+                  {sale.items.map(
+                    (item) => (
+                      <div
+                        key={item.id}
+                        className="receipt-item"
+                      >
+                        <div>
+                          <strong>
+                            {item.title}
+                          </strong>
 
-          <strong>
-            {formatKsh(item.price * item.quantity)}
-          </strong>
-        </div>
-      ))}
+                          <p>
+                            {item.quantity} ×{" "}
+                            {formatKsh(
+                              item.price
+                            )}
+                          </p>
+                        </div>
 
-      <hr />
+                        <strong>
+                          {formatKsh(
+                            item.price *
+                              item.quantity
+                          )}
+                        </strong>
+                      </div>
+                    )
+                  )}
 
-      <div className="receipt-total">
-        <strong>TOTAL</strong>
-        <strong>{formatKsh(sale.total)}</strong>
-      </div>
-    </div>
+                  <hr />
 
-    <p className="sale-success-message">
-      ✓ Sale completed successfully.
-    </p>
+                  <div className="receipt-total">
+                    <strong>TOTAL</strong>
 
-    <button onClick={() => setSale(null)}>
-      New Sale
-    </button>
-  </div>
-)}
+                    <strong>
+                      {formatKsh(
+                        sale.total
+                      )}
+                    </strong>
+                  </div>
+                </div>
+
+                <p className="sale-success-message">
+                  ✓ Sale completed
+                  successfully.
+                </p>
+
+                <button
+                  onClick={() =>
+                    setSale(null)
+                  }
+                >
+                  New Sale
+                </button>
+              </div>
+            )}
+
             <div className="catalogue-controls">
               <SearchBar
                 value={search}
@@ -797,6 +1020,74 @@ function App() {
                 onChange={setCategory}
               />
             </div>
+
+            {heldCarts.length > 0 && (
+              <section className="held-sales">
+                <div className="held-sales-header">
+                  <div>
+                    <p className="section-kicker">
+                      HELD SALES
+                    </p>
+
+                    <h2>
+                      {heldCarts.length} sale
+                      {heldCarts.length === 1
+                        ? ""
+                        : "s"}{" "}
+                      on hold
+                    </h2>
+                  </div>
+                </div>
+
+                <div className="held-sales-list">
+                  {heldCarts.map(
+                    (heldSale) => (
+                      <div
+                        className="held-sale-card"
+                        key={heldSale.id}
+                      >
+                        <div>
+                          <strong>
+                            Sale #{heldSale.id}
+                          </strong>
+
+                          <p>
+                            {heldSale.items.reduce(
+                              (
+                                total,
+                                item
+                              ) =>
+                                total +
+                                item.quantity,
+                              0
+                            )}{" "}
+                            item(s)
+                          </p>
+
+                          <small>
+                            Held{" "}
+                            {new Date(
+                              heldSale.heldAt
+                            ).toLocaleTimeString()}
+                          </small>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            restoreHeldSale(
+                              heldSale.id
+                            )
+                          }
+                        >
+                          Restore Sale
+                        </button>
+                      </div>
+                    )
+                  )}
+                </div>
+              </section>
+            )}
 
             {loading ? (
               <div
@@ -819,7 +1110,8 @@ function App() {
                 role="alert"
               >
                 <h2>
-                  Products couldn’t be loaded
+                  Products couldn’t be
+                  loaded
                 </h2>
 
                 <p>{error}</p>
@@ -831,12 +1123,12 @@ function App() {
                 </h2>
 
                 <p>
-                  There are no matching products
-                  to display right now.
+                  There are no matching
+                  products to display right
+                  now.
                 </p>
               </div>
-            ) : filteredProducts.length ===
-              0 ? (
+            ) : filteredProducts.length === 0 ? (
               <div className="catalogue-message">
                 <h2>
                   {view === "low-stock"
@@ -863,12 +1155,16 @@ function App() {
                   </p>
 
                   <ProductList
-                    products={filteredProducts}
+                    products={
+                      filteredProducts
+                    }
                     cart={cart}
                     showStock={
                       view === "low-stock"
                     }
-                    onAddToCart={(product) =>
+                    onAddToCart={(
+                      product
+                    ) =>
                       dispatch({
                         type: "ADD",
                         product,
@@ -906,18 +1202,27 @@ function App() {
                     })
                   }
                   onCheckout={completeSale}
+                  onHoldSale={holdSale}
                 />
               </div>
             )}
 
             {selectedProduct && (
-              <div ref={productDetailsRef}>
+              <div
+                ref={productDetailsRef}
+              >
                 <ProductDetails
-                  product={selectedProduct}
-                  onClose={() =>
-                    setSelectedProduct(null)
+                  product={
+                    selectedProduct
                   }
-                  onAddToCart={(product) =>
+                  onClose={() =>
+                    setSelectedProduct(
+                      null
+                    )
+                  }
+                  onAddToCart={(
+                    product
+                  ) =>
                     dispatch({
                       type: "ADD",
                       product,
@@ -933,4 +1238,12 @@ function App() {
   );
 }
 
-export default App;
+function AppWithRouter() {
+  return (
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  );
+}
+
+export default AppWithRouter;
