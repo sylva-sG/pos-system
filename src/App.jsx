@@ -28,6 +28,7 @@ function App() {
   const [sale, setSale] = useState(null);
 
   const [sessionSales, setSessionSales] = useState([]);
+  const receiptRef = useRef(null);
   const [view, setView] = useState("home");
   const [featuredIndex, setFeaturedIndex] = useState(0);
 
@@ -150,24 +151,46 @@ function App() {
     setSelectedProduct(null);
   };
 
-  const completeSale = (total, itemCount) => {
-    if (itemCount <= 0) return;
+  const completeSale = () => {
+  if (cart.length === 0) {
+    return;
+  }
 
-    const completedSale = {
-      total,
-      itemCount,
-      completedAt: new Date().toISOString(),
-    };
+  const total = cart.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  );
 
-    setSale(completedSale);
-
-    setSessionSales((sales) => [
-      ...sales,
-      completedSale,
-    ]);
-
-    dispatch({ type: "CLEAR" });
+  const completedSale = {
+    items: cart.map((item) => ({
+      id: item.id,
+      title: item.title,
+      price: item.price,
+      quantity: item.quantity,
+    })),
+    total,
+    itemCount: cart.reduce(
+      (sum, item) => sum + item.quantity,
+      0
+    ),
+    completedAt: new Date().toISOString(),
   };
+
+  setSale(completedSale);
+  setSessionSales((sales) => [
+    ...sales,
+    completedSale,
+  ]);
+
+  dispatch({ type: "CLEAR" });
+
+  setTimeout(() => {
+    receiptRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }, 100);
+};
 
   const handleViewDetails = (product) => {
     setSelectedProduct(product);
@@ -712,31 +735,56 @@ function App() {
               )}
             </div>
 
-            {sale && (
-              <div
-                className="sale-confirmation"
-                role="status"
-              >
-                <p>
-                  Sale completed!{" "}
-                  {sale.itemCount} item(s),
-                  total{" "}
-                  <strong>
-                    {formatKsh(sale.total)}
-                  </strong>
-                  .
-                </p>
+          {sale && (
+  <div
+    className="sale-confirmation"
+    ref={receiptRef}
+    role="status"
+  >
+    <h2>Sale Completed</h2>
 
-                <button
-                  onClick={() =>
-                    setSale(null)
-                  }
-                >
-                  New sale
-                </button>
-              </div>
-            )}
+    <div className="receipt">
+      <h3>TECHPOINT RECEIPT</h3>
 
+      <p>
+        <strong>Date:</strong>{" "}
+        {new Date(sale.completedAt).toLocaleString()}
+      </p>
+
+      <hr />
+
+      {sale.items.map((item) => (
+        <div key={item.id} className="receipt-item">
+          <div>
+            <strong>{item.title}</strong>
+            <p>
+              {item.quantity} × {formatKsh(item.price)}
+            </p>
+          </div>
+
+          <strong>
+            {formatKsh(item.price * item.quantity)}
+          </strong>
+        </div>
+      ))}
+
+      <hr />
+
+      <div className="receipt-total">
+        <strong>TOTAL</strong>
+        <strong>{formatKsh(sale.total)}</strong>
+      </div>
+    </div>
+
+    <p className="sale-success-message">
+      ✓ Sale completed successfully.
+    </p>
+
+    <button onClick={() => setSale(null)}>
+      New Sale
+    </button>
+  </div>
+)}
             <div className="catalogue-controls">
               <SearchBar
                 value={search}
