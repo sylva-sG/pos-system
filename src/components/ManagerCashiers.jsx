@@ -1,43 +1,61 @@
 import { useState } from "react";
 
-function ManagerCashiers() {
-  const [cashiers, setCashiers] = useState([
-    {
-      id: 1,
-      name: "Cashier 1",
-      sales: 0,
-    },
-    {
-      id: 2,
-      name: "Cashier 2",
-      sales: 0,
-    },
-  ]);
+function ManagerCashiers({ users = [], setUsers }) {
+  const [newName, setNewName] = useState("");
+  const [newUsername, setNewUsername] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [error, setError] = useState("");
 
-  const [newCashier, setNewCashier] = useState("");
+  const cashiers = users.filter(
+    (user) => user.role === "cashier"
+  );
 
   const registerCashier = (e) => {
     e.preventDefault();
 
-    if (!newCashier.trim()) {
+    const name = newName.trim();
+    const username = newUsername.trim();
+    const password = newPassword.trim();
+
+    if (!name || !username || !password) {
+      setError("Please fill in all cashier details.");
       return;
     }
 
-    setCashiers([
-      ...cashiers,
-      {
-        id: Date.now(),
-        name: newCashier.trim(),
-        sales: 0,
-      },
+    const usernameExists = users.some(
+      (user) =>
+        user.username.toLowerCase() ===
+        username.toLowerCase()
+    );
+
+    if (usernameExists) {
+      setError("That username is already in use.");
+      return;
+    }
+
+    const newUser = {
+      username,
+      password,
+      role: "cashier",
+      name,
+    };
+
+    setUsers((currentUsers) => [
+      ...currentUsers,
+      newUser,
     ]);
 
-    setNewCashier("");
+    setNewName("");
+    setNewUsername("");
+    setNewPassword("");
+    setError("");
   };
 
-  const removeCashier = (id) => {
-    setCashiers(
-      cashiers.filter((cashier) => cashier.id !== id)
+  const removeCashier = (username) => {
+    setUsers((currentUsers) =>
+      currentUsers.filter(
+        (user) => user.username !== username
+      )
     );
   };
 
@@ -54,12 +72,32 @@ function ManagerCashiers() {
         >
           <input
             type="text"
-            value={newCashier}
-            onChange={(e) =>
-              setNewCashier(e.target.value)
-            }
-            placeholder="Enter cashier name"
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            placeholder="Cashier name"
           />
+
+          <input
+            type="text"
+            value={newUsername}
+            onChange={(e) =>
+              setNewUsername(e.target.value)
+            }
+            placeholder="Username"
+          />
+
+          <input
+            type="password"
+            value={newPassword}
+            onChange={(e) =>
+              setNewPassword(e.target.value)
+            }
+            placeholder="Password"
+          />
+
+          {error && (
+            <p className="login-error">{error}</p>
+          )}
 
           <button type="submit">
             Register Cashier
@@ -74,20 +112,20 @@ function ManagerCashiers() {
           {cashiers.map((cashier) => (
             <div
               className="cashier-row"
-              key={cashier.id}
+              key={cashier.username}
             >
               <div>
                 <strong>{cashier.name}</strong>
 
                 <p>
-                  Sales: KSh{" "}
-                  {cashier.sales.toLocaleString()}
+                  Username: {cashier.username}
                 </p>
               </div>
 
               <button
+                type="button"
                 onClick={() =>
-                  removeCashier(cashier.id)
+                  removeCashier(cashier.username)
                 }
               >
                 Remove

@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-function Login({ onLogin }) {
+function Login({ users = [], onLogin }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -12,19 +12,6 @@ function Login({ onLogin }) {
       setError("Please enter your username and password.");
       return;
     }
-
-    const users = [
-      {
-        username: "cashier",
-        password: "cashier123",
-        role: "cashier",
-      },
-      {
-        username: "manager",
-        password: "manager123",
-        role: "manager",
-      },
-    ];
 
     const user = users.find(
       (account) =>
@@ -43,44 +30,78 @@ function Login({ onLogin }) {
 
   return (
     <div className="login-page">
-      <div className="login-card">
+      <div className="login-brand">
+        <div className="brand-icon">TP</div>
+
         <h1>TechPoint</h1>
-        <h2>Login</h2>
+
+        <p>
+          Smart sales. Simple management.
+        </p>
+      </div>
+
+      <div className="login-card">
+        <div className="login-header">
+          <h2>Welcome back</h2>
+
+          <p>
+            Sign in to access the TechPoint POS system.
+          </p>
+        </div>
 
         <form onSubmit={handleSubmit}>
-          <label>Username</label>
+          <div className="login-field">
+            <label htmlFor="username">
+              Username
+            </label>
 
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            placeholder="Enter username"
-          />
+            <input
+              id="username"
+              type="text"
+              value={username}
+              onChange={(e) => {
+                setUsername(e.target.value);
+                setError("");
+              }}
+              placeholder="Enter your username"
+            />
+          </div>
 
-          <label>Password</label>
+          <div className="login-field">
+            <label htmlFor="password">
+              Password
+            </label>
 
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Enter password"
-          />
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                setError("");
+              }}
+              placeholder="Enter your password"
+            />
+          </div>
 
           {error && (
-            <p className="login-error">
+            <p className="login-error" role="alert">
               {error}
             </p>
           )}
 
-          <button type="submit">
-            Login
+          <button
+            className="login-button"
+            type="submit"
+          >
+            Sign In
           </button>
         </form>
 
-        <div className="demo-accounts">
-          <p>Demo accounts:</p>
-          <p>Cashier: cashier / cashier123</p>
-          <p>Manager: manager / manager123</p>
+        <div className="login-footer">
+          <span></span>
+          <p>TechPoint POS</p>
+          <span></span>
         </div>
       </div>
     </div>
