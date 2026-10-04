@@ -193,7 +193,8 @@ function App() {
     useState({});
 
   const [heldCarts, setHeldCarts] = useState([]);
-  const [sale, setSale] = useState(null);
+const [sale, setSale] = useState(null);
+const [paymentMethod, setPaymentMethod] = useState("Cash");
   const [tabsState, tabsDispatch] =
   useReducer(
     tabsReducer,
@@ -364,14 +365,16 @@ function App() {
         carts[user.username] ?? [],
     }));
 
-    if (user.role === "cashier") {
-  tabsDispatch({
-    type: "ADD_TAB",
-    tab: {
-      name: "Tab 1",
-      items: [],
-    },
-  });
+   if (user.role === "cashier") {
+  if (tabsState.tabs.length === 0) {
+    tabsDispatch({
+      type: "ADD_TAB",
+      tab: {
+        name: "Tab 1",
+        items: [],
+      },
+    });
+  }
 }
 
     setCurrentUser(user);
@@ -580,11 +583,13 @@ function App() {
     setView(nextView);
 
     const routes = {
-      home: "/",
-      products: "/cashier/products",
-      categories: "/cashier/categories",
-      "low-stock": "/cashier/low-stock",
-    };
+  home: "/",
+  products: "/cashier/products",
+  categories: "/cashier/categories",
+  orders: "/cashier/orders",
+   ledger: "/cashier/ledger",
+  "low-stock": "/cashier/low-stock",
+};
 
     navigate(routes[nextView] || "/");
   };
@@ -732,7 +737,7 @@ const completedSale = {
   subtotalKsh,
   totalKsh,
 
-  paymentMethod: "Cash",
+  paymentMethod,
 
   itemCount: cart.reduce(
     (sum, item) =>
@@ -1068,6 +1073,46 @@ save(
           >
             Products
           </button>
+
+          <button
+            className={`app-nav-button${
+              view === "orders"
+                ? " is-active"
+                : ""
+            }`}
+            type="button"
+            aria-current={
+              view === "orders"
+                ? "page"
+                : undefined
+            }
+            onClick={() =>
+              navigateTo(
+                "orders"
+              )
+            }
+          >
+            Orders
+          </button>
+
+          <button
+  className={`app-nav-button${
+    view === "ledger"
+      ? " is-active"
+      : ""
+  }`}
+  type="button"
+  aria-current={
+    view === "ledger"
+      ? "page"
+      : undefined
+  }
+  onClick={() =>
+    navigateTo("ledger")
+  }
+>
+  Ledger
+</button>
 
           <button
             className={`app-nav-button${
@@ -1588,7 +1633,259 @@ save(
             )}
           </section>
         </main>
-      ) : (   
+              ) : view === "orders" ? (
+        <main className="main-content">
+          <section className="catalogue">
+            <div className="catalogue-heading">
+              <div>
+                <p className="section-kicker">
+                  SALES HISTORY
+                </p>
+
+                <h1>
+                  Orders
+                </h1>
+
+                <p>
+                  View completed sales and
+                  order details.
+                </p>
+              </div>
+            </div>
+
+            {load(KEYS.ORDERS, []).length === 0 ? (
+              <div className="catalogue-message">
+                <h2>
+                  No orders yet
+                </h2>
+
+                <p>
+                  Completed sales will
+                  appear here.
+                </p>
+              </div>
+            ) : (
+              <div className="orders-list">
+                {load(KEYS.ORDERS, [])
+                  .slice()
+                  .reverse()
+                  .map((order) => (
+                    <article
+                      key={order.id}
+                      className="order-card"
+                    >
+                      <div>
+                        <p className="section-kicker">
+                          {order.receiptNumber}
+                        </p>
+
+                        <h2>
+                          {order.orderId}
+                        </h2>
+
+                        <p>
+                          Cashier:{" "}
+                          {order.cashier?.name ??
+                            order.cashier}
+                        </p>
+
+                        <p>
+                          {new Date(
+                            order.createdAt
+                          ).toLocaleString()}
+                        </p>
+                      </div>
+
+                      <div>
+                        <strong>
+                          {formatKsh(
+                            order.totalKsh
+                          )}
+                        </strong>
+
+                        <p>
+                          {order.itemCount} item(s)
+                        </p>
+
+                        <p>
+                          Paid via:{" "}
+                          {order.paymentMethod}
+                        </p>
+                      </div>
+                    </article>
+                  ))}
+              </div>
+            )}
+          </section>
+        </main>
+      ) : view === "orders" ? (
+        <main className="main-content">
+          <section className="catalogue">
+            <div className="catalogue-heading">
+              <div>
+                <p className="section-kicker">
+                  SALES HISTORY
+                </p>
+
+                <h1>
+                  Orders
+                </h1>
+
+                <p>
+                  View completed sales and
+                  order details.
+                </p>
+              </div>
+            </div>
+
+            {load(KEYS.ORDERS, []).length === 0 ? (
+              <div className="catalogue-message">
+                <h2>
+                  No orders yet
+                </h2>
+
+                <p>
+                  Completed sales will
+                  appear here.
+                </p>
+              </div>
+            ) : (
+              <div className="orders-list">
+                {load(KEYS.ORDERS, [])
+                  .slice()
+                  .reverse()
+                  .map((order) => (
+                    <article
+                      key={order.id}
+                      className="order-card"
+                    >
+                      <div>
+                        <p className="section-kicker">
+                          {order.receiptNumber}
+                        </p>
+
+                        <h2>
+                          {order.orderId}
+                        </h2>
+
+                        <p>
+                          Cashier:{" "}
+                          {order.cashier?.name ??
+                            order.cashier}
+                        </p>
+
+                        <p>
+                          {new Date(
+                            order.createdAt
+                          ).toLocaleString()}
+                        </p>
+                      </div>
+
+                      <div>
+                        <strong>
+                          {formatKsh(
+                            order.totalKsh
+                          )}
+                        </strong>
+
+                        <p>
+                          {order.itemCount} item(s)
+                        </p>
+
+                        <p>
+                          Paid via:{" "}
+                          {order.paymentMethod}
+                        </p>
+                      </div>
+                    </article>
+                  ))}
+              </div>
+            )}
+          </section>
+        </main>
+            ) : view === "ledger" ? (
+        <main className="main-content">
+          <section className="catalogue">
+            <div className="catalogue-heading">
+              <div>
+                <p className="section-kicker">
+                  STOCK LEDGER
+                </p>
+
+                <h1>
+                  Ledger
+                </h1>
+
+                <p>
+                  Track stock movements from completed sales.
+                </p>
+              </div>
+            </div>
+
+            {load(KEYS.LEDGER, []).length === 0 ? (
+              <div className="catalogue-message">
+                <h2>
+                  No ledger entries yet
+                </h2>
+
+                <p>
+                  Stock movements will appear here after sales are completed.
+                </p>
+              </div>
+            ) : (
+              <div className="orders-list">
+                {load(KEYS.LEDGER, [])
+                  .slice()
+                  .reverse()
+                  .map((entry) => (
+                    <article
+                      key={entry.id}
+                      className="order-card"
+                    >
+                      <div>
+                        <p className="section-kicker">
+                          {entry.type?.toUpperCase()}
+                        </p>
+
+                        <h2>
+                          {entry.productTitle}
+                        </h2>
+
+                        <p>
+                          Cashier: {entry.user}
+                        </p>
+
+                        <p>
+                          {new Date(
+                            entry.createdAt
+                          ).toLocaleString()}
+                        </p>
+                      </div>
+
+                      <div>
+                        <strong>
+                          {entry.quantity} unit(s)
+                        </strong>
+
+                        <p>
+                          Stock before: {entry.before}
+                        </p>
+
+                        <p>
+                          Stock after: {entry.after}
+                        </p>
+
+                        <p>
+                          Change: {entry.delta}
+                        </p>
+                      </div>
+                    </article>
+                  ))}
+              </div>
+            )}
+          </section>
+        </main>
+      ) : (
         <main className="main-content">
           <Tabs
   tabs={tabsState.tabs}
@@ -1947,6 +2244,31 @@ save(
                     }
                   />
                 </div>
+                <div className="payment-method-selector">
+  <label htmlFor="payment-method">
+    Payment Method
+  </label>
+
+  <select
+    id="payment-method"
+    value={paymentMethod}
+    onChange={(event) =>
+      setPaymentMethod(event.target.value)
+    }
+  >
+    <option value="Cash">
+      Cash
+    </option>
+
+    <option value="Card">
+      Card
+    </option>
+
+    <option value="M-Pesa">
+      M-Pesa
+    </option>
+  </select>
+</div>
 
                 <Cart
                   items={cart}
