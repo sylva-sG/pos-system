@@ -5,6 +5,7 @@ import ManagerSales from "./components/ManagerSales";
 import ManagerProducts from "./components/ManagerProducts";
 import ManagerCashiers from "./components/ManagerCashiers";
 import About from "./components/About";
+import Tabs from "./components/Tabs";
 
 import {
   BrowserRouter,
@@ -19,11 +20,36 @@ import {
   useMemo,
   useState,
   useRef,
+  useReducer,
 } from "react";
 
 import { getProducts } from "./api/products";
 import { cartReducer } from "./cart/cartReducer";
-import { formatKsh } from "./utils/formatPrice";
+import {
+  formatKsh,
+  toKsh,
+} from "./utils/formatPrice";
+
+import {
+  saleId,
+  orderId,
+  receiptNumber,
+} from "./utils/id";
+
+import {
+  makeSaleEntriesForCart,
+} from "./utils/ledger";
+
+import {
+  load,
+  save,
+  KEYS,
+} from "./utils/storage";
+
+import {
+  initialTabsState,
+  tabsReducer,
+} from "./tabs/tabsReducer";
 
 import ProductList from "./components/ProductList";
 import ProductDetails from "./components/ProductDetails";
@@ -164,6 +190,11 @@ function App() {
 
   const [heldCarts, setHeldCarts] = useState([]);
   const [sale, setSale] = useState(null);
+  const [tabsState, tabsDispatch] =
+  useReducer(
+    tabsReducer,
+    initialTabsState
+  );
   const [sessionSales, setSessionSales] =
     useState([]);
 
@@ -205,26 +236,118 @@ function App() {
     ? cashierCarts[currentUser.username] ?? []
     : [];
 
+    const activeTab =
+  tabsState.tabs.find(
+    (tab) =>
+      tab.id ===
+      tabsState.activeTabId
+  ) ?? null;
+
+    const createNewTab = () => {
+    tabsDispatch({
+      type: "ADD_TAB",
+      tab: {
+        name: `Tab ${tabsState.tabs.length + 1}`,
+        items: [],
+      },
+    });
+
+    if (currentUser) {
+      setCashierCarts((carts) => ({
+        ...carts,
+        [currentUser.username]: [],
+      }));
+    }
+  };
+
+  const switchTab = (tabId) => {
+    if (!currentUser) {
+      return;
+    }
+
+    const selectedTab =
+      tabsState.tabs.find(
+        (tab) => tab.id === tabId
+      );
+
+    if (!selectedTab) {
+      return;
+    }
+
+    setCashierCarts((carts) => ({
+      ...carts,
+      [currentUser.username]:
+        selectedTab.items ?? [],
+    }));
+
+    tabsDispatch({
+      type: "SET_ACTIVE_TAB",
+      id: tabId,
+    });
+  };
+
+  const closeTab = (tabId) => {
+    const tab =
+      tabsState.tabs.find(
+        (item) => item.id === tabId
+      );
+
+    if (!tab) {
+      return;
+    }
+
+    if (tab.items.length > 0) {
+      const confirmed =
+        window.confirm(
+          `${tab.name} contains items. Close it anyway?`
+        );
+
+      if (!confirmed) {
+        return;
+      }
+    }
+
+    tabsDispatch({
+      type: "REMOVE_TAB",
+      id: tabId,
+    });
+  };
+
   /*
     Apply cartReducer to the current
     cashier's cart.
   */
   const dispatch = (action) => {
-    if (!currentUser) {
-      return;
+  if (!currentUser) {
+    return;
+  }
+
+  const username = currentUser.username;
+
+  setCashierCarts((carts) => {
+    const currentCart =
+      carts[username] ?? [];
+
+    const nextCart =
+      cartReducer(
+        currentCart,
+        action
+      );
+
+    if (tabsState.activeTabId) {
+      tabsDispatch({
+        type: "SET_TAB_ITEMS",
+        id: tabsState.activeTabId,
+        items: nextCart,
+      });
     }
 
-    const username = currentUser.username;
-
-    setCashierCarts((carts) => ({
+    return {
       ...carts,
-
-      [username]: cartReducer(
-        carts[username] ?? [],
-        action
-      ),
-    }));
-  };
+      [username]: nextCart,
+    };
+  });
+};
 
   /*
     LOGIN
@@ -236,6 +359,16 @@ function App() {
       [user.username]:
         carts[user.username] ?? [],
     }));
+
+    if (user.role === "cashier") {
+  tabsDispatch({
+    type: "ADD_TAB",
+    tab: {
+      name: "Tab 1",
+      items: [],
+    },
+  });
+}
 
     setCurrentUser(user);
     setSale(null);
@@ -564,38 +697,52 @@ function App() {
       return;
     }
 
-    const total = cart.reduce(
-      (sum, item) =>
-        sum +
-        item.price *
-          item.quantity,
-      0
-    );
+   const subtotalKsh = cart.reduce(
+  (sum, item) =>
+    sum +
+    toKsh(item.price) * item.quantity,
+  0
+);
 
-    const completedSale = {
-      id: Date.now(),
+const totalKsh = subtotalKsh;
 
-      cashier:
-        currentUser.username,
+const completedSale = {
+  id: saleId(),
+  orderId: orderId(),
+  receiptNumber: receiptNumber(),
+  createdAt: Date.now(),
 
-      items: cart.map((item) => ({
-        id: item.id,
-        title: item.title,
-        price: item.price,
-        quantity: item.quantity,
-      })),
+  cashier: {
+    name: currentUser.username,
+  },
 
-      total,
+  items: cart.map((item) => ({
+    id: item.id,
+    title: item.title,
+    price: item.price,
+    quantity: item.quantity,
+    lineTotalKsh:
+      toKsh(item.price) * item.quantity,
+  })),
 
-      itemCount: cart.reduce(
-        (sum, item) =>
-          sum + item.quantity,
-        0
-      ),
+  subtotalKsh,
+  totalKsh,
 
-      completedAt:
-        new Date().toISOString(),
-    };
+  paymentMethod: "Cash",
+
+  itemCount: cart.reduce(
+    (sum, item) =>
+      sum + item.quantity,
+    0
+  ),
+};
+
+const ledgerEntries = makeSaleEntriesForCart({
+  items: cart,
+  products,
+  user: currentUser.username,
+  at: completedSale.createdAt,
+});
 
     /*
       Reduce stock.
@@ -639,12 +786,48 @@ function App() {
       completedSale,
     ]);
 
+    const existingOrders = load(
+  KEYS.ORDERS,
+  []
+);
+
+save(
+  KEYS.ORDERS,
+  [
+    ...existingOrders,
+    completedSale,
+  ]
+);
+
+    /*
+  Save ledger entries.
+*/
+const existingLedger = load(
+  KEYS.LEDGER,
+  []
+);
+
+save(
+  KEYS.LEDGER,
+  [
+    ...existingLedger,
+    ...ledgerEntries,
+  ]
+);
+
     /*
       Clear only current cashier's cart.
     */
     dispatch({
       type: "CLEAR",
     });
+
+    if (tabsState.activeTabId) {
+  tabsDispatch({
+    type: "REMOVE_TAB",
+    id: tabsState.activeTabId,
+  });
+}
 
     /*
       Scroll to receipt.
@@ -1223,7 +1406,7 @@ function App() {
                   sold for{" "}
                   <strong>
                     {formatKsh(
-                      latestSale.total
+                      latestSale.totalKsh
                     )}
                   </strong>
                   {" · "}
@@ -1401,8 +1584,15 @@ function App() {
             )}
           </section>
         </main>
-      ) : (
+      ) : (   
         <main className="main-content">
+          <Tabs
+  tabs={tabsState.tabs}
+  activeTabId={tabsState.activeTabId}
+  onSelect={switchTab}
+  onAdd={createNewTab}
+  onRemove={closeTab}
+/>
           <section
             className="catalogue"
             aria-labelledby="catalogue-title"
@@ -1487,15 +1677,15 @@ function App() {
                               item.quantity
                             }{" "}
                             ×{" "}
-                            {formatKsh(
-                              item.price
+                            {formatKsh(toKsh(
+                              item.price)
                             )}
                           </p>
                         </div>
 
                         <strong>
                           {formatKsh(
-                            item.price *
+                            toKsh(item.price) *
                               item.quantity
                           )}
                         </strong>
