@@ -30,6 +30,8 @@ import ProductDetails from "./components/ProductDetails";
 import SearchBar from "./components/SearchBar";
 import CategoryFilter from "./components/CategoryFilter";
 import Cart from "./components/Cart";
+import { filterProducts } from "./utils/filterProducts";
+import { useDebounce } from "./hooks/useDebounce";
 
 function App() {
   const navigate = useNavigate();
@@ -256,7 +258,7 @@ function App() {
   const handleSwitchUser = () => {
     setSale(null);
     setSelectedProduct(null);
-    setSearch("");
+    setSearchInput("");
     setCategory("all");
     setView("home");
     setCurrentUser(null);
@@ -331,56 +333,23 @@ function App() {
   /*
     Search and filter
   */
-  const [search, setSearch] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const search = useDebounce(searchInput, 300);
   const [category, setCategory] =
     useState("all");
 
-  const filteredProducts = useMemo(() => {
-    const query =
-      search.trim().toLowerCase();
+   const filteredProducts = useMemo(() => {
+    const matches = filterProducts(products, search, category);
 
-    return products.filter((product) => {
-      const matchesCategory =
-        category === "all" ||
-        product.category === category;
+    if (view !== "low-stock") return matches;
 
-      const matchesSearch =
-        !query ||
-        product.title
-          .toLowerCase()
-          .includes(query) ||
-        product.brand
-          ?.toLowerCase()
-          .includes(query) ||
-        product.category
-          .toLowerCase()
-          .includes(query);
-
+    return matches.filter((product) => {
       const quantityInCart =
-        cart.find(
-          (item) => item.id === product.id
-        )?.quantity ?? 0;
+        cart.find((item) => item.id === product.id)?.quantity ?? 0;
 
-      const matchesStock =
-        view !== "low-stock" ||
-        (product.stock > 0 &&
-          product.stock -
-            quantityInCart <=
-            10);
-
-      return (
-        matchesCategory &&
-        matchesSearch &&
-        matchesStock
-      );
+      return product.stock > 0 && product.stock - quantityInCart <= 10;
     });
-  }, [
-    products,
-    search,
-    category,
-    view,
-    cart,
-  ]);
+  }, [products, search, category, view, cart]);
 
   /*
     Low-stock count
@@ -429,15 +398,15 @@ function App() {
   /*
     Navigation
   */
-  const clearFilters = () => {
-    setSearch("");
+    const clearFilters = () => {
+    setSearchInput("");
     setCategory("all");
     setView("products");
     navigate("/cashier/products");
   };
 
   const navigateTo = (nextView) => {
-    setSearch("");
+    setSearchInput("");
     setCategory("all");
     setSelectedProduct(null);
     setView(nextView);
@@ -1535,8 +1504,8 @@ function App() {
 
             <div className="catalogue-controls">
               <SearchBar
-                value={search}
-                onChange={setSearch}
+                value={searchInput}
+                onChange={setSearchInput}
               />
 
               <CategoryFilter
