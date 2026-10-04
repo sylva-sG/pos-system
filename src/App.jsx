@@ -41,6 +41,10 @@ import {
 } from "./utils/ledger";
 
 import {
+  downloadReceiptText,
+} from "./utils/receiptText";
+
+import {
   load,
   save,
   KEYS,
@@ -1639,73 +1643,102 @@ save(
                 </h2>
 
                 <div className="receipt">
-                  <h3>
-                    TECHPOINT RECEIPT
-                  </h3>
+  <h3>
+    TECHPOINT RECEIPT
+  </h3>
 
-                  <p>
-                    <strong>
-                      Cashier:
-                    </strong>{" "}
-                    {sale.cashier}
-                  </p>
+  <p>
+    <strong>Receipt:</strong>{" "}
+    {sale.receiptNumber}
+  </p>
 
-                  <p>
-                    <strong>Date:</strong>{" "}
-                    {new Date(
-                      sale.completedAt
-                    ).toLocaleString()}
-                  </p>
+  <p>
+    <strong>Order:</strong>{" "}
+    {sale.orderId}
+  </p>
 
-                  <hr />
+  <p>
+    <strong>Cashier:</strong>{" "}
+    {sale.cashier?.name ?? sale.cashier}
+  </p>
 
-                  {sale.items.map(
-                    (item) => (
-                      <div
-                        key={item.id}
-                        className="receipt-item"
-                      >
-                        <div>
-                          <strong>
-                            {
-                              item.title
-                            }
-                          </strong>
+  <p>
+    <strong>Date:</strong>{" "}
+    {new Date(
+      sale.createdAt
+    ).toLocaleString()}
+  </p>
 
-                          <p>
-                            {
-                              item.quantity
-                            }{" "}
-                            ×{" "}
-                            {formatKsh(toKsh(
-                              item.price)
-                            )}
-                          </p>
-                        </div>
+  <hr />
 
-                        <strong>
-                          {formatKsh(
-                            toKsh(item.price) *
-                              item.quantity
-                          )}
-                        </strong>
-                      </div>
-                    )
-                  )}
+  {sale.items.map((item) => (
+    <div
+      key={item.id}
+      className="receipt-item"
+    >
+      <div>
+        <strong>
+          {item.title}
+        </strong>
 
-                  <hr />
+        <p>
+          {item.quantity} ×{" "}
+          {formatKsh(
+            toKsh(item.price)
+          )}
+        </p>
+      </div>
 
-                  <div className="receipt-total">
-                    <strong>
-                      TOTAL
-                    </strong>
+      <strong>
+        {formatKsh(
+          item.lineTotalKsh ??
+            toKsh(item.price) *
+              item.quantity
+        )}
+      </strong>
+    </div>
+  ))}
 
-                    <strong>
-                      {formatKsh(
-                        sale.total
-                      )}
-                    </strong>
-                  </div>
+  <hr />
+
+  <div className="receipt-total">
+    <strong>
+      TOTAL
+    </strong>
+
+    <strong>
+      {formatKsh(
+        sale.totalKsh
+      )}
+    </strong>
+  </div>
+
+  <p>
+    <strong>Payment:</strong>{" "}
+    {sale.paymentMethod}
+  </p>
+</div>
+
+                <div className="receipt-actions">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      window.print()
+                    }
+                  >
+                    Print Receipt
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      downloadReceiptText(
+                        sale
+                      )
+                    }
+                  >
+                    Download Receipt
+                  </button>
                 </div>
 
                 <p className="sale-success-message">
